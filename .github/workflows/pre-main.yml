@@ -108,8 +108,8 @@ jobs:
                   fetch-depth: 0
             - name: Org Authorisation
               run: |
-              echo ${{ vars.TARGET_ORG_URL }} > authorise.txt
-              sf org:login:sfdx-url --sfdx-url-file authorise.txt -s -a TargetOrg
+                echo ${{ vars.TARGET_ORG_URL }} > authorise.txt
+                sf org:login:sfdx-url --sfdx-url-file authorise.txt -s -a TargetOrg
             - uses: actions/download-artifact@v2
               with:
                 name: sfdx-deployment-package
