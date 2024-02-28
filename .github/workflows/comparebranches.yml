@@ -1,7 +1,7 @@
 name: Compare Files across two Branches
 on:
-    # pull_request:
-    #   branches: main
+    pull_request:
+      branches: pre-main
     # push:
     #   branches: main
     workflow_dispatch:

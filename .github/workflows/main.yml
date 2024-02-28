@@ -107,7 +107,9 @@ jobs:
               with:
                   fetch-depth: 0
             - name: Org Authorisation
-              run: sf org:login:sfdx-url --sfdx-url-file authorise -s -a TargetOrg
+              run: |
+                echo ${{ vars.TARGET_ORG_URL }} > authorise.txt
+                sf org:login:sfdx-url --sfdx-url-file authorise -s -a TargetOrg
             - uses: actions/download-artifact@v2
               with:
                 name: sfdx-deployment-package
@@ -126,7 +128,7 @@ jobs:
                     echo "No source-backed components present in the package."
                     echo "So Unable to start Validation"
                   else
-                    sfdx force:source:deploy --manifest package/package.xml --targetusername ${{ secrets.USERNAME }} --checkonly --wait 0
+                    sfdx force:source:deploy --manifest package/package.xml --targetusername ${{ secrets.USERNAME_TARGET }} --checkonly --wait 0
                   fi
             - name: Deployment of Code
               if: github.event_name != 'pull_request'
@@ -142,5 +144,5 @@ jobs:
                   echo "No source-backed components present in the package."
                   echo "So Unable to start Deployment"
                 else
-                  sfdx force:source:deploy --manifest package/package.xml --targetusername ${{ secrets.USERNAME }}
+                  sfdx force:source:deploy --manifest package/package.xml --targetusername ${{ secrets.USERNAME_TARGET }}
                 fi
