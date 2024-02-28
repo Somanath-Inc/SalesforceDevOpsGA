@@ -44,7 +44,7 @@ jobs:
               uses: nrwl/last-successful-commit-action@v1
               with:
                 branch: "${{github.ref_name}}"
-                workflow_id: 'main.yml'
+                workflow_id: 'pre-main.yml'
                 github_token: ${{ secrets.GITH_TOKEN }}
               id: last_succesful_build_id
             - name: Source and Target Commit ID for branch Deployment
