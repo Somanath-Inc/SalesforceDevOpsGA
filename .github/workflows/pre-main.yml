@@ -122,7 +122,7 @@ jobs:
                   if [ -f package/package.xml ];
                   then
                     cat package/package.xml
-                    cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml)
+                    cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" package/package.xml)
                   fi
                   if [ $cmpTypeCount_Pkg -eq 0 ];
                   then
