@@ -25,14 +25,14 @@ jobs:
               if: github.event_name == 'pull_request'
               uses: actions/checkout@v3
               with:
-                repository: Somanath-Inc/GitHubActionsDec14
+                repository: Somanath-Inc/SalesforceDevOpsGA
                 path: SourceBranchPath
                 ref: ${{env.SOURCE_BRANCH}}
             - name: Checkout Target Branch Code
               if: github.event_name == 'pull_request'
               uses: actions/checkout@v3
               with:
-                repository: Somanath-Inc/GitHubActionsDec14
+                repository: Somanath-Inc/SalesforceDevOpsGA
                 path: TargetBranchPath
                 ref: ${{ env.TARGET_BRANCH }}
             - name: Commit ID Extraction for PR
@@ -70,7 +70,7 @@ jobs:
                   && (env.SOURCE_COMMIT_ID == env.TARGET_COMMIT_ID)
               uses: actions/checkout@v3
               with:
-                repository: Somanath-Inc/GitHubActionsDec14
+                repository: Somanath-Inc/SalesforceDevOpsGA
                 path: TargetBranchPath
                 ref: main
             - name: Target Commit Extract for Deployment
@@ -108,7 +108,7 @@ jobs:
                   fetch-depth: 0
             - name: Org Authorisation
               run: |
-              echo ${{ vars.TARGET_ORG_URL }} > authorise.txt  
+              echo ${{ vars.TARGET_ORG_URL }} > authorise.txt
               sf org:login:sfdx-url --sfdx-url-file authorise.txt -s -a TargetOrg
             - uses: actions/download-artifact@v2
               with:
@@ -118,10 +118,10 @@ jobs:
               if: github.event_name == 'pull_request'
               run: |
                   cmpTypeCount_Pkg=0
-                  if [ -f /home/runner/work/GitHubActionsDec14/GitHubActionsDec14/package/package.xml ];
+                  if [ -f /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml ];
                   then
-                    cat /home/runner/work/GitHubActionsDec14/GitHubActionsDec14/package/package.xml
-                    cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/GitHubActionsDec14/GitHubActionsDec14/package/package.xml)
+                    cat /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml
+                    cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml)
                   fi
                   if [ $cmpTypeCount_Pkg -eq 0 ];
                   then
@@ -134,10 +134,10 @@ jobs:
               if: github.event_name != 'pull_request'
               run: |
                 cmpTypeCount_Pkg=0
-                if [ -f /home/runner/work/GitHubActionsDec14/GitHubActionsDec14/package/package.xml ];
+                if [ -f /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml ];
                 then
-                  cat /home/runner/work/GitHubActionsDec14/GitHubActionsDec14/package/package.xml
-                  cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/GitHubActionsDec14/GitHubActionsDec14/package/package.xml)
+                  cat /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml
+                  cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml)
                 fi
                 if [ $cmpTypeCount_Pkg -eq 0 ];
                 then
