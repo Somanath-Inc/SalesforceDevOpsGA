@@ -117,10 +117,11 @@ jobs:
             - name: Validation of Code
               if: github.event_name == 'pull_request'
               run: |
+                  pwd
                   cmpTypeCount_Pkg=0
-                  if [ -f /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml ];
+                  if [ -f package/package.xml ];
                   then
-                    cat /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml
+                    cat package/package.xml
                     cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml)
                   fi
                   if [ $cmpTypeCount_Pkg -eq 0 ];
