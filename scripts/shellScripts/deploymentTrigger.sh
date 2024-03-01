@@ -21,16 +21,16 @@ then
     sfdx force:source:deploy --manifest package/package.xml --targetusername $USERNAME --postdestructivechanges package/destructiveChanges.xml --wait 0 --json > deployment.json
     cat deployment.json
     deploymentStatus=$(jq '.status' deployment.json)
-    deploymentId=$(jq '.result.id' deployment.json | sed 's/"//g')
-    echo "Validation Status: $deploymentStatus --------- DeploymentId: $deploymentId"
+    DeploymentID=$(jq '.result.id' deployment.json | sed 's/"//g')
+    echo "Validation Status: $deploymentStatus --------- DeploymentId: $DeploymentID"
     if [ "$deploymentStatus" != 0 ];
     then
         errorMessage=$(jq '.result.message' validation.json)
         echo "*****Error***** Deploymnet Failed ..... Error Message: $errorMessage"
         exit 1
     else
-        echo "Deployment Started with Deployment Id: $deploymentId"
-        echo "DEPLOYMENTID=$deploymentId" >> $GITHUB_ENV
+        echo "Deployment Started with Deployment Id: $DeploymentID"
+        echo "DEPLOYMENTID=$DeploymentID" >> $GITHUB_ENV
     fi
 else
     echo "No Source backed components present in the package.xml. So, Deployment failed to start"
