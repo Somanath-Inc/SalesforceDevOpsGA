@@ -8,11 +8,11 @@ fi
 
 if [ -f package/package.xml ];
 then
-    cmpTypeCount_Pkg=$(grep -c "<name>*</name>" package/package.xml)
+    cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" package/package.xml)
 fi
 if [ -f package/destructiveChanges.xml ];
 then
-    cmpTypeCount_dePkg=$(grep -c "<name>*</name>" package/destructiveChanges.xml)
+    cmpTypeCount_dePkg=$(grep -c "<name>.*</name>" package/destructiveChanges.xml)
 fi
 echo "cmpTypeCount_Pkg : $cmpTypeCount_Pkg --------- cmpTypeCount_dePkg : $cmpTypeCount_dePkg ----------"
 if [ $cmpTypeCount_Pkg -gt 0 ] || [ $cmpTypeCount_dePkg -gt 0 ];
