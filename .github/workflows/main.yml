@@ -1,4 +1,4 @@
-name: Validation/Deployment of Dev Branch to Main
+name: Validation/Deployment to Main
 on:
     pull_request:
         branches: main
@@ -109,40 +109,30 @@ jobs:
             - name: Org Authorisation
               run: |
                 echo ${{ vars.TARGET_ORG_URL }} > authorise.txt
-                sf org:login:sfdx-url --sfdx-url-file authorise -s -a TargetOrg
+                sf org:login:sfdx-url --sfdx-url-file authorise.txt -s -a TargetOrg
             - uses: actions/download-artifact@v2
               with:
                 name: sfdx-deployment-package
                 path: package/
             - name: Validation of Code
               if: github.event_name == 'pull_request'
-              run: |
-                  cmpTypeCount_Pkg=0
-                  if [ -f /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml ];
-                  then
-                    cat /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml
-                    cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml)
-                  fi
-                  if [ $cmpTypeCount_Pkg -eq 0 ];
-                  then
-                    echo "No source-backed components present in the package."
-                    echo "So Unable to start Validation"
-                  else
-                    sfdx force:source:deploy --manifest package/package.xml --targetusername ${{ secrets.USERNAME_TARGET }} --checkonly --wait 0
-                  fi
+              run: bash scripts/shellScripts/ValidationTrigger.sh ${{ secrets.USERNAME_TARGET }}
             - name: Deployment of Code
               if: github.event_name != 'pull_request'
+              run: bash scripts/shellScripts/deploymentTrigger.sh ${{ secrets.USERNAME_TARGET }}
+            - name: Validation Status Check
+              if: github.event_name == 'pull_request'
               run: |
-                cmpTypeCount_Pkg=0
-                if [ -f /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml ];
-                then
-                  cat /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml
-                  cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml)
-                fi
-                if [ $cmpTypeCount_Pkg -eq 0 ];
-                then
-                  echo "No source-backed components present in the package."
-                  echo "So Unable to start Deployment"
-                else
-                  sfdx force:source:deploy --manifest package/package.xml --targetusername ${{ secrets.USERNAME_TARGET }}
-                fi
+                  if [ ${{env.DeploymentID}} != '' ];
+                  then
+                    echo "Deployment Id: ${{env.DeploymentID}}"
+                    bash scripts/shellScripts/ValidationStatusCheck.sh ${{env.DeploymentID}} ${{secrets.USERNAME_TARGET}}
+                  fi
+            - name: Deployment Status Check
+              if: github.event_name != 'pull_request'
+              run: |
+                  if [ ${{env.DeploymentID}} != '' ];
+                  then
+                    echo "Deployment Id: ${{env.DeploymentID}}"
+                    bash scripts/shellScripts/DeploymentStatusCheck.sh ${{env.DeploymentID}} ${{secrets.USERNAME_TARGET}}
+                  fi
