@@ -44,7 +44,7 @@ jobs:
               uses: nrwl/last-successful-commit-action@v1
               with:
                 branch: "${{github.ref_name}}"
-                workflow_id: 'main.yml'
+                workflow_id: 'pre-main.yml'
                 github_token: ${{ secrets.GITH_TOKEN }}
               id: last_succesful_build_id
             - name: Source and Target Commit ID for branch Deployment
@@ -114,36 +114,33 @@ jobs:
               with:
                 name: sfdx-deployment-package
                 path: package/
+            - name: Variable Read from SFDX Package Preparation & Artifact Upload Job
+              run: |
+                  echo "Hello, world! ---- source_branch-${{ env.SOURCE_BRANCH }} - - - target_branch-${{ env.TARGET_BRANCH }} - - - - source_commit_id-${{env.source_commit_id}} - - - - target_commit_id-${{env.target_commit_id}}"
+                  ls -lhrta 
+                  ls -lhrta package/*
+                  cat package/package.xml
+                  echo " ----- "
+                  cat package/destructiveChanges.xml
             - name: Validation of Code
               if: github.event_name == 'pull_request'
-              run: |
-                  pwd
-                  cmpTypeCount_Pkg=0
-                  if [ -f package/package.xml ];
-                  then
-                    cat package/package.xml
-                    cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" package/package.xml)
-                  fi
-                  if [ $cmpTypeCount_Pkg -eq 0 ];
-                  then
-                    echo "No source-backed components present in the package."
-                    echo "So Unable to start Validation"
-                  else
-                    sfdx force:source:deploy --manifest package/package.xml --targetusername ${{ secrets.USERNAME_TARGET }} --checkonly --wait 0
-                  fi
+              run: bash scripts/shellScripts/ValidationTrigger.sh ${{ secrets.USERNAME_TARGET }}
             - name: Deployment of Code
               if: github.event_name != 'pull_request'
+              run: bash scripts/shellScripts/deploymentTrigger.sh ${{ secrets.USERNAME_TARGET }}
+            - name: Validation Status Check
+              if: github.event_name == 'pull_request'
               run: |
-                cmpTypeCount_Pkg=0
-                if [ -f /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml ];
-                then
-                  cat /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml
-                  cmpTypeCount_Pkg=$(grep -c "<name>.*</name>" /home/runner/work/SalesforceDevOpsGA/SalesforceDevOpsGA/package/package.xml)
-                fi
-                if [ $cmpTypeCount_Pkg -eq 0 ];
-                then
-                  echo "No source-backed components present in the package."
-                  echo "So Unable to start Deployment"
-                else
-                  sfdx force:source:deploy --manifest package/package.xml --targetusername ${{ secrets.USERNAME_TARGET }}
-                fi
+                  if [ ${{env.DeploymentID}} != '' ];
+                  then
+                    echo "Deployment Id: ${{env.DeploymentID}}"
+                    bash scripts/shellScripts/ValidationStatusCheck.sh ${{env.DeploymentID}} ${{secrets.USERNAME_TARGET}}
+                  fi
+            - name: Deployment Status Check
+              if: github.event_name != 'pull_request'
+              run: |
+                  if [ ${{env.DeploymentID}} != '' ];
+                  then
+                    echo "Deployment Id: ${{env.DeploymentID}}"
+                    bash scripts/shellScripts/DeploymentStatusCheck.sh ${{env.DeploymentID}} ${{secrets.USERNAME_TARGET}}
+                  fi
