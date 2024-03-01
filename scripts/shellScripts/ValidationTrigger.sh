@@ -18,7 +18,7 @@ echo "cmpTypeCount_Pkg : $cmpTypeCount_Pkg --------- cmpTypeCount_dePkg : $cmpTy
 if [ $cmpTypeCount_Pkg -gt 0 ] || [ $cmpTypeCount_dePkg -gt 0 ];
 then
     echo "Started Validation ---------------- "
-    sfdx force:source:deploy --manifest package/package.xml --target-username $USERNAME --postdestructivechanges package/destructiveChanges.xml --checkonly --wait 0 --json > validation.json
+    sfdx force:source:deploy --manifest package/package.xml --targetusername $USERNAME --postdestructivechanges package/destructiveChanges.xml --checkonly --wait 0 --json > validation.json
     cat validation.json
     validationStatus=$(jq '.status' validation.json)
     deploymentId=$(jq '.result.id' validation.json | sed 's/"//g')
