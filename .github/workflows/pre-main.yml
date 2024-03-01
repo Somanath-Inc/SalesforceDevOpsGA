@@ -141,7 +141,7 @@ jobs:
             - name: Deployment Status Check
               if: github.event_name != 'pull_request'
               run: |
-                  if [ ${{env.DeploymentID}} != '' ];
+                  if [ ${{env.DEPLOYMENTID}} != '' ];
                   then
                     echo "Deployment Id: ${{env.DeploymentID}}"
                     bash scripts/shellScripts/DeploymentStatusCheck.sh ${{env.DeploymentID}} ${{secrets.USERNAME_TARGET}}
