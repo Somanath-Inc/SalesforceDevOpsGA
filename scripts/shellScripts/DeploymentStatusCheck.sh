@@ -14,8 +14,8 @@ then
     while true
     do
         sleep 10s
-        sfdx force:data:record:get --sobjectid $DEPLOYMENTID --sobjecttype deployRequest --targetusername $USERNAME --usetoolingapix --json > DeploymentStatus.json
-        DeploymentStatus=$(.jq '.result.Status' DeploymentStatus.json | sed 's/"//g' )
+        sfdx force:data:record:get --sobjectid $DEPLOYMENTID --sobjecttype deployRequest --targetusername $USERNAME --usetoolingapi --json > DeploymentStatus.json
+        DeploymentStatus=$(jq '.result.Status' DeploymentStatus.json | sed 's/"//g' )
         echo "Deployment Status: $DeploymentStatus"
         if [ $DeploymentStatus == "Succeeded" ];
         then

@@ -14,7 +14,7 @@ then
     while true
     do
         sleep 10s
-        sfdx force:data:record:get --sobjectid $DEPLOYMENTID --sobjecttype deployRequest --targetusername $USERNAME --usetoolingapix --json > validationStatus.json
+        sfdx force:data:record:get --sobjectid $DEPLOYMENTID --sobjecttype deployRequest --targetusername $USERNAME --usetoolingapi --json > validationStatus.json
         validationStatus=$(jq '.result.Status' validationStatus.json | sed 's/"//g' )
         echo "Validation Status: $validationStatus"
         if [ $validationStatus == "Succeeded" ];
