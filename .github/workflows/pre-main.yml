@@ -114,6 +114,14 @@ jobs:
               with:
                 name: sfdx-deployment-package
                 path: package/
+            - name: Variable Read from SFDX Package Preparation & Artifact Upload Job
+              run: |
+                  echo "Hello, world! ---- source_branch-${{ env.SOURCE_BRANCH }} - - - target_branch-${{ env.TARGET_BRANCH }} - - - - source_commit_id-${{env.source_commit_id}} - - - - target_commit_id-${{env.target_commit_id}}"
+                  ls -lhrta 
+                  ls -lhrta package/*
+                  cat package/package.xml
+                  echo " ----- "
+                  cat package/destructiveChanges.xml
             - name: Validation of Code
               if: github.event_name == 'pull_request'
               run: bash scripts/shellScripts/ValidationTrigger.sh ${{ secrets.USERNAME_TARGET }}
