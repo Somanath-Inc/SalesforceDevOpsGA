@@ -18,7 +18,7 @@ echo "cmpTypeCount_Pkg : $cmpTypeCount_Pkg --------- cmpTypeCount_dePkg : $cmpTy
 if [ $cmpTypeCount_Pkg -gt 0 ] || [ $cmpTypeCount_dePkg -gt 0 ]
 then
     echo "Started Deployment ---------------- "
-    sfdx force:source:deploy --manifest package/package.xml --targetusername $USERNAME --postdestructivechanges package/destructiveChanges.xml --wait 0 --json > validation.json
+    sfdx force:source:deploy --manifest package/package.xml --targetusername $USERNAME --postdestructivechanges package/destructiveChanges.xml --wait 0 --json > deployment.json
     cat deployment.json
     deploymentStatus=$(jq '.status' deployment.json)
     deploymentId=$(jq '.result.id' deployment.json | sed 's/"//g')
