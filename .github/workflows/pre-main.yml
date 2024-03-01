@@ -62,6 +62,8 @@ jobs:
                     echo "TARGET_COMMIT_ID=${{github.sha}}" >> $GITHUB_ENV
                     echo "TARGET_COMMIT_ID: ${{github.sha}}"
                   fi
+                  echo "TARGET_COMMIT_ID=5f6026195e98d799d525e8e1e753e816aef18df8" >> $GITHUB_ENV
+                  echo "TARGET_COMMIT_ID: 5f6026195e98d799d525e8e1e753e816aef18df8"
             - name: Update List of Github Actions Variables
               run: env
             - name: Target Commit ID Extraction from Main Branch
