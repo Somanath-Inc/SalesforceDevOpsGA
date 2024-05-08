@@ -1,0 +1,138 @@
+name: Validation/Deployment to Main
+on:
+    pull_request:
+        branches: main
+    push:
+        branches: main
+    workflow_dispatch:
+jobs:
+    SFDX_PACKAGE_PREPARATION:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Git Repository
+              uses: actions/checkout@v3
+              with:
+                fetch-depth: 0
+            - name: Pull Request
+              if: github.event_name == 'pull_request'
+              run: |
+                    SOURCE_BRANCH="${{ github.head_ref }}"
+                    TARGET_BRANCH="${{ github.base_ref }}"
+                    echo "SOURCE_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+                    echo "TARGET_BRANCH=${{ github.base_ref }}" >> $GITHUB_ENV
+                    echo "Pull Request: from $SOURCE_BRANCH to $TARGET_BRANCH"
+            - name: Checkout Source Branch Code
+              if: github.event_name == 'pull_request'
+              uses: actions/checkout@v3
+              with:
+                repository: Somanath-Inc/SalesforceDevOpsGA
+                path: SourceBranchPath
+                ref: ${{env.SOURCE_BRANCH}}
+            - name: Checkout Target Branch Code
+              if: github.event_name == 'pull_request'
+              uses: actions/checkout@v3
+              with:
+                repository: Somanath-Inc/SalesforceDevOpsGA
+                path: TargetBranchPath
+                ref: ${{ env.TARGET_BRANCH }}
+            - name: Commit ID Extraction for PR
+              if: github.event_name == 'pull_request'
+              run: |
+                sh scripts/shellScripts/commitExtractPR.sh
+            - name: Commit ID Extraction for branch Deployment
+              if: github.event_name != 'pull_request'
+              uses: nrwl/last-successful-commit-action@v1
+              with:
+                branch: "${{github.ref_name}}"
+                workflow_id: 'main.yml'
+                github_token: ${{ secrets.GITH_TOKEN }}
+              id: last_succesful_build_id
+            - name: Source and Target Commit ID for branch Deployment
+              if: github.event_name != 'pull_request'
+              run: |
+                  echo "Source Commit ID: ${{github.sha}}"
+                  echo "SOURCE_COMMIT_ID=${{github.sha}}" >> $GITHUB_ENV
+                  echo "Last Succesfull Commit ID: ${{steps.last_succesful_build_id.outputs.commit_hash}}"
+                  #echo "TARGET_COMMIT_ID=8cdd804335bd1ad7c9840793f13b77b050bcd410" >> $GITHUB_ENV
+                  if [ "${{steps.last_succesful_build_id.outputs.commit_hash}}" != "" ];
+                  then
+                    echo "TARGET_COMMIT_ID=${{steps.last_succesful_build_id.outputs.commit_hash}}" >> $GITHUB_ENV
+                    echo
+                  else
+                    echo "TARGET_COMMIT_ID=${{github.sha}}" >> $GITHUB_ENV
+                    echo "TARGET_COMMIT_ID: ${{github.sha}}"
+                  fi
+            - name: Update List of Github Actions Variables
+              run: env
+            - name: Target Commit ID Extraction from Main Branch
+              if: |
+                  github.event_name != 'pull_request'
+                  && (env.SOURCE_COMMIT_ID == env.TARGET_COMMIT_ID)
+              uses: actions/checkout@v3
+              with:
+                repository: Somanath-Inc/SalesforceDevOpsGA
+                path: TargetBranchPath
+                ref: main
+            - name: Target Commit Extract for Deployment
+              if: |
+                github.event_name != 'pull_request'
+                && (env.SOURCE_COMMIT_ID == env.TARGET_COMMIT_ID)
+              run: |
+                  sh scripts/shellScripts/commitExtractMain.sh
+            - name: Package Preparation
+              run: |
+                    sh scripts/shellScripts/deltaComponentRetrieve.sh ${{ env.SOURCE_COMMIT_ID }} ${{ env.TARGET_COMMIT_ID }}
+              shell: bash
+            - uses: actions/upload-artifact@v2
+              with:
+                name: sfdx-deployment-package
+                path: package/*
+        outputs:
+            source_branch: ${{ env.SOURCE_BRANCH }}
+            target_branch: ${{ env.TARGET_BRANCH }}
+            source_commitId: ${{ env.SOURCE_COMMIT_ID }}
+            target_commitID: ${{ env.TARGET_COMMIT_ID }}
+
+
+    VALIDATION_DEPLOYMENT:
+        name: Org Validation/ Deployment
+        needs: SFDX_PACKAGE_PREPARATION
+        runs-on: ubuntu-latest
+        container:
+            image: salesforce/salesforcedx:latest-full
+            options: '-u 0:0'
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: Org Authorisation
+              run: |
+                echo ${{ vars.TARGET_ORG_URL }} > authorise.txt
+                sf org:login:sfdx-url --sfdx-url-file authorise.txt -s -a TargetOrg
+            - uses: actions/download-artifact@v2
+              with:
+                name: sfdx-deployment-package
+                path: package/
+            - name: Validation of Code
+              if: github.event_name == 'pull_request'
+              run: bash scripts/shellScripts/ValidationTrigger.sh ${{ secrets.USERNAME_TARGET }}
+            - name: Deployment of Code
+              if: github.event_name != 'pull_request'
+              run: bash scripts/shellScripts/deploymentTrigger.sh ${{ secrets.USERNAME_TARGET }}
+            - name: Validation Status Check
+              if: github.event_name == 'pull_request'
+              run: |
+                  if [ ${{env.DeploymentID}} != '' ];
+                  then
+                    echo "Deployment Id: ${{env.DeploymentID}}"
+                    bash scripts/shellScripts/ValidationStatusCheck.sh ${{env.DeploymentID}} ${{secrets.USERNAME_TARGET}}
+                  fi
+            - name: Deployment Status Check
+              if: github.event_name != 'pull_request'
+              run: |
+                  if [ ${{env.DeploymentID}} != '' ];
+                  then
+                    echo "Deployment Id: ${{env.DeploymentID}}"
+                    bash scripts/shellScripts/DeploymentStatusCheck.sh ${{env.DeploymentID}} ${{secrets.USERNAME_TARGET}}
+                  fi
